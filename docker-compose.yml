@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: enube-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: enube
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - enube-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enube-api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    networks:
+      - enube-net
+    command: >
+      sh -c "
+        echo 'Aguardando o banco de dados...'; 
+        until pg_isready -h db -U root; do 
+          sleep 2; 
+        done; 
+        echo 'Banco disponível! Iniciando a aplicação...'; 
+        ./main
+      "
+
+volumes:
+  pgdata:
+
+networks:
+  enube-net:
+    driver: bridge

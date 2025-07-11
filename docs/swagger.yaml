@@ -1,0 +1,333 @@
+basePath: /
+definitions:
+  dto.DashboardEntryDTO:
+    properties:
+      label:
+        type: string
+      total:
+        type: number
+    type: object
+  dto.LoginRequestDTO:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - name
+    - password
+    type: object
+  dto.LoginResponseDTO:
+    properties:
+      token:
+        type: string
+    type: object
+  dto.UserInputDTO:
+    properties:
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - name
+    - password
+    type: object
+  dto.UserOutputDTO:
+    properties:
+      name:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: API para importação, dashboard e autenticação
+  title: Enube API
+  version: "1.0"
+paths:
+  /api/dashboard/by-category:
+    get:
+      consumes:
+      - application/json
+      description: Retorna o total faturado agrupado por categoria do medidor (meter.category)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.DashboardEntryDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Faturamento por categoria de medição
+      tags:
+      - Dashboard
+  /api/dashboard/by-client:
+    get:
+      consumes:
+      - application/json
+      description: Lista o total de faturamento agrupado por cliente
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.DashboardEntryDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Faturamento por cliente
+      tags:
+      - Dashboard
+  /api/dashboard/by-resource:
+    get:
+      consumes:
+      - application/json
+      description: Lista o faturamento agrupado por recurso (campo consumed_service)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.DashboardEntryDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Faturamento por recurso
+      tags:
+      - Dashboard
+  /api/dashboard/monthly:
+    get:
+      consumes:
+      - application/json
+      description: Retorna o total de faturamento agrupado por mês de cobrança
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.DashboardEntryDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Faturamento mensal
+      tags:
+      - Dashboard
+  /api/dashboard/summary:
+    get:
+      consumes:
+      - application/json
+      description: Retorna valores agregados do sistema como total faturado e quantidade
+        de registros
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Totais gerais de faturamento e quantidade
+      tags:
+      - Dashboard
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Realiza o login e retorna um token JWT
+      parameters:
+      - description: Credenciais de login
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Autenticação do usuário
+      tags:
+      - Autenticação
+  /api/users:
+    get:
+      description: Retorna todos os usuários cadastrados
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.UserOutputDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista todos os usuários
+      tags:
+      - Usuários
+    post:
+      consumes:
+      - application/json
+      description: Cria um novo usuário com nome e senha
+      parameters:
+      - description: Dados do usuário
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserInputDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserOutputDTO'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cadastra um novo usuário
+      tags:
+      - Usuários
+  /api/users/{id}:
+    get:
+      description: Retorna um único usuário pelo ID
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserOutputDTO'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca usuário por ID
+      tags:
+      - Usuários
+  /import:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Arquivo Excel (.xlsx)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Importa dados a partir de planilha .xlsx
+      tags:
+      - Importação
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
